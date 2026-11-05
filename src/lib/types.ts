@@ -1,4 +1,4 @@
-export const FEATURES = ["CPU", "Memory", "Bandwidth", "Latency", "Disk I/O"] as const;
+export const FEATURES = ["CPU", "Memory", "Bandwidth", "Latency", "Disk I/O"] as const; // placeholder-mode fallback only
 
 export interface PipelineConfig {
   featureSelection: boolean; // Layer 1: OOA-PSO
@@ -15,6 +15,7 @@ export interface PredictorMetrics {
   mse: number;
   mae: number;
   r2: number;
+  persistenceR2?: number; // "next = current" baseline, sent by the real backend
 }
 
 export interface Metrics {
@@ -27,6 +28,7 @@ export interface Metrics {
 /** This shape is the contract between the UI and any layer backend (placeholder or Python). */
 export interface RunResult {
   config: PipelineConfig;
+  allFeatures?: string[]; // real backend: the 11 trace features; placeholder: omitted
   selectedFeatures: string[];
   predictor: PredictorMetrics | null;
   schedulerName: string;
