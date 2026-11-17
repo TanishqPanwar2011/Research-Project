@@ -64,8 +64,8 @@ export default function Home() {
 
   const hint =
     cfg.featureSelection && !cfg.predictor ? "Layer 1 has no visible effect while Layer 2 is off, because it only feeds the predictor."
-    : cfg.predictor && !cfg.scheduler ? "Forecasts are computed, but nothing uses them while Layer 3 is off."
-    : "";
+      : cfg.predictor && !cfg.scheduler ? "Forecasts are computed, but nothing uses them while Layer 3 is off."
+        : "";
   const baseline = compare.find((r) => !r.config.featureSelection && !r.config.predictor && !r.config.scheduler);
   const bestMk = compare.length ? Math.min(...compare.map((r) => r.metrics.makespan)) : 0;
   const inp = "w-24 rounded-lg border border-slate-300 bg-white px-2 py-1 dark:border-slate-600 dark:bg-slate-800";
@@ -79,12 +79,12 @@ export default function Home() {
         </header>
 
         <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-          The three layers are placeholders for now (correlation filter, linear regression, earliest-finish rule). The UI, switches and database are real; replace each layer using the guide.
+          Layers 1 and 2 run on the real Google 2011 cluster trace when the Python backend is connected. Layer 3 is still a placeholder (earliest-finish) until the DQN is built.
         </p>
 
         <section className="grid gap-3 md:grid-cols-3">
           <LayerSwitch step={1} tech="OOA-PSO" title="Feature selection" on={cfg.featureSelection} onChange={(v) => set("featureSelection", v)}
-            whenOn="Keeps only useful signals." whenOff="Uses all 5 signals, noise included." />
+            whenOn="Keeps only useful signals." whenOff="Uses every available signal, noise included." />
           <LayerSwitch step={2} tech="CNN-LSTM" title="Load prediction" on={cfg.predictor} onChange={(v) => set("predictor", v)}
             whenOn="Forecasts the next load value." whenOff="No forecast: scheduler assumes an average task." />
           <LayerSwitch step={3} tech="DQN" title="Task scheduling" on={cfg.scheduler} onChange={(v) => set("scheduler", v)}
@@ -114,14 +114,15 @@ export default function Home() {
               <Kpi label="Energy (kJ)" value={result.metrics.energyKJ.toFixed(1)} />
             </div>
             <div className="flex flex-wrap gap-2">
-              {FEATURES.map((f) => (
+              {(result.allFeatures ?? FEATURES).map((f) => (
                 <span key={f} className={`rounded-full border px-3 py-1 text-sm ${result.selectedFeatures.includes(f) ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 text-slate-400 line-through dark:border-slate-600"}`}>{f}</span>
               ))}
             </div>
             {result.predictor ? (
               <div>
                 <p className="mb-1 text-sm text-slate-500">
-                  Forecast vs actual (<span className="text-blue-600">actual</span>, <span className="text-orange-600">predicted</span>) · MSE {result.predictor.mse.toFixed(5)} · MAE {result.predictor.mae.toFixed(4)} · R² {result.predictor.r2.toFixed(3)}
+                  Cluster-mean CPU, next 5-min window: forecast vs actual (<span className="text-blue-600">actual</span>, <span className="text-orange-600">predicted</span>) · MSE {result.predictor.mse.toFixed(5)} · MAE {result.predictor.mae.toFixed(4)} · R² {result.predictor.r2.toFixed(3)}
+                  {result.predictor.persistenceR2 !== undefined && <> · naive R² {result.predictor.persistenceR2.toFixed(3)}</>}
                 </p>
                 <LineChart a={result.series.actual} b={result.series.predicted} />
               </div>
@@ -149,7 +150,7 @@ export default function Home() {
                 {compare.map((r, i) => (
                   <tr key={i} className="border-t border-slate-200 dark:border-slate-700">
                     <td className="py-1 pr-3 font-medium">{comboLabel(r.config)}</td>
-                    <td className="pr-3">{r.selectedFeatures.length}/5</td>
+                    <td className="pr-3">{r.selectedFeatures.length}/{(r.allFeatures ?? FEATURES).length}</td>
                     <td className={`pr-3 tabular-nums ${r.metrics.makespan === bestMk ? "font-semibold text-emerald-600" : ""}`}>{r.metrics.makespan.toFixed(2)}</td>
                     <td className="pr-3 tabular-nums">{baseline ? `${((1 - r.metrics.makespan / baseline.metrics.makespan) * 100).toFixed(1)}%` : "-"}</td>
                     <td className="pr-3 tabular-nums">{r.metrics.utilizationSD.toFixed(3)}</td>
