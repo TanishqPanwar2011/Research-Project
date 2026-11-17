@@ -79,7 +79,7 @@ export default function Home() {
         </header>
 
         <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-          Layers 1 and 2 run on the real Google 2011 cluster trace when the Python backend is connected. Layer 3 is still a placeholder (earliest-finish) until the DQN is built.
+          Layers 1 to 3 run on the real Google 2011 cluster trace when the Python backend is connected. Layer 3 is a DQN trained offline on Layer 2's real test samples.
         </p>
 
         <section className="grid gap-3 md:grid-cols-3">
